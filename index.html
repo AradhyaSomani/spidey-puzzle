@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spider-Man Puzzle — Campus Quest 5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="web-bg"></div>
+
+<div class="wrap">
+  <header>
+    <h1>Spider-Man <span>Puzzle</span></h1>
+    <p>Campus Quest 5.0 &middot; Coding Ninjas 10X SRM</p>
+  </header>
+
+  <div class="layout">
+    <div class="card board-card">
+      <div class="hud">
+        <div class="badge">
+          <div class="badge-label">Time</div>
+          <div class="badge-value" id="hudTime">00:00</div>
+        </div>
+        <div class="badge">
+          <div class="badge-label">Moves</div>
+          <div class="badge-value" id="hudMoves">0</div>
+        </div>
+      </div>
+
+    <div class="board" id="board"></div>
+
+     <div class="board-foot">
+        <span class="playing-as" id="playingAs"></span>
+        <button class="btn secondary" id="hintBtn">🕸️ Web-Vision (+10s)</button>
+        <button class="btn" id="shuffleBtn">Re-shuffle</button>
+      </div>
+    </div>
+
+    <div class="card side-panel">
+      <h2>🏆 Leaderboard</h2>
+      <ol id="lbList"><li class="lb-empty">Loading…</li></ol>
+    </div>
+  </div>
+</div>
+
+<!-- NAME GATE: shown first, blocks the puzzle until submitted -->
+<div class="modal-back visible" id="gateBack">
+  <div class="modal">
+    <div class="modal-icon">🕷️</div>
+    <h2>Enter the Web</h2>
+    <p>Enter your name to start the puzzle and join the leaderboard.</p>
+    <input type="text" id="gateNameInput" placeholder="Your name" maxlength="18">
+    <button class="btn" id="gateStartBtn">Start Puzzle</button>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div class="modal-back" id="modalBack">
+  <div class="modal">
+    <div class="modal-icon">🕸️</div>
+    <h2>Solved!</h2>
+    <p>Your run has been saved to the leaderboard.</p>
+    <div class="stats">
+      <div><div class="value" id="modalTime">00:00</div><div class="label">Time</div></div>
+      <div><div class="value" id="modalMoves">0</div><div class="label">Moves</div></div>
+      <div><div class="value" id="modalRank">#-</div><div class="label">Rank</div></div>
+    </div>
+    <button class="btn" id="modalCloseBtn">Play again</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
