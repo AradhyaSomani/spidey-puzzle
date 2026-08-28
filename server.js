@@ -2,9 +2,11 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
-const SCORES_FILE = path.join(ROOT, 'scores.json');
+
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 const MIME = {
   '.html': 'text/html',
@@ -16,40 +18,55 @@ const MIME = {
   '.png': 'image/png',
 };
 
-function readScores(){
+async function readScores(){
   try{
-    return JSON.parse(fs.readFileSync(SCORES_FILE, 'utf8'));
+    const res = await fetch(`${UPSTASH_URL}/get/scores`, {
+      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+    });
+    const data = await res.json();
+    return data.result ? JSON.parse(data.result) : [];
   }catch(err){
-    return []; // file doesn't exist yet, or is empty
+    console.error('readScores failed', err);
+    return [];
   }
 }
 
-function writeScores(list){
-  fs.writeFileSync(SCORES_FILE, JSON.stringify(list, null, 2));
+async function writeScores(list){
+  await fetch(`${UPSTASH_URL}/set/scores`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+    body: JSON.stringify(list),
+  });
 }
 
 const server = http.createServer((req, res) => {
   // ---- API: leaderboard ----
   if (req.url === '/leaderboard' && req.method === 'GET') {
-    const list = readScores().sort((a, b) => a.time - b.time || a.moves - b.moves);
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(list.slice(0, 10)));
+    readScores().then(list => {
+      list.sort((a, b) => a.time - b.time || a.moves - b.moves);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(list.slice(0, 10)));
+    });
     return;
   }
 
   if (req.url === '/score' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => body += chunk);
-    req.on('end', () => {
+    req.on('end', async () => {
       try{
         const entry = JSON.parse(body);
         if (typeof entry.name !== 'string' || typeof entry.time !== 'number' || typeof entry.moves !== 'number') {
           res.writeHead(400); res.end('Invalid entry'); return;
         }
-        entry.name = entry.name.slice(0, 18); // basic guardrail
-        const list = readScores();
+        entry.name = entry.name.slice(0, 18);
+        entry.time = Math.max(0, Math.floor(entry.time));
+        entry.moves = Math.max(0, Math.floor(entry.moves));
+
+        const list = await readScores();
         list.push(entry);
-        writeScores(list);
+        await writeScores(list);
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
       }catch(err){
@@ -62,6 +79,11 @@ const server = http.createServer((req, res) => {
   // ---- static files ----
   let filePath = req.url === '/' ? '/index.html' : req.url;
   filePath = path.join(ROOT, filePath);
+
+  if (!filePath.startsWith(ROOT)) {
+    res.writeHead(403); res.end('Forbidden'); return;
+  }
+
   const ext = path.extname(filePath);
 
   fs.readFile(filePath, (err, data) => {
@@ -72,5 +94,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Puzzle running at http://localhost:${PORT}`);
+  console.log(`Puzzle running on port ${PORT}`);
 });
