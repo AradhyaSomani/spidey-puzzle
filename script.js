@@ -158,13 +158,15 @@ function checkWin(){
 // ---------- leaderboard (talks to server.js) ----------
 async function saveScore(entry){
   try{
-    await fetch('/score', {
+    const res = await fetch('/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry)
     });
+    return await res.json();
   }catch(err){
     console.error('Could not save score', err);
+    return null;
   }
 }
 
@@ -196,15 +198,22 @@ function renderLeaderboard(list){
 async function onSolved(){
   const entry = { name: playerName, time: seconds, moves };
 
-  await saveScore(entry);
+  const result = await saveScore(entry);
   const list = await loadLeaderboard();
-  const rank = list.findIndex(e => e.name === playerName && e.time === seconds && e.moves === moves) + 1;
+  const rank = list.findIndex(e => e.name === playerName) + 1;
 
   document.getElementById('modalTime').textContent = fmtTime(seconds);
   document.getElementById('modalMoves').textContent = moves;
-  document.getElementById('modalRank').textContent = '#' + (rank > 0 ? rank : '-');
-  document.getElementById('modalBack').classList.add('visible');
+  document.getElementById('modalRank').textContent = rank > 0 ? ('#' + rank) : '#-';
 
+  const noteEl = document.getElementById('modalNote');
+  if (result && result.duplicate) {
+    noteEl.textContent = "Only your first attempt counts on the leaderboard — this run wasn't saved, but nice solve!";
+  } else {
+    noteEl.textContent = "";
+  }
+
+  document.getElementById('modalBack').classList.add('visible');
   renderLeaderboard(list);
 }
 

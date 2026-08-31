@@ -52,8 +52,8 @@
   <div class="modal">
     <div class="modal-icon">🕷️</div>
     <h2>Enter the Web</h2>
-    <p>Enter your name to start the puzzle and join the leaderboard.</p>
-    <input type="text" id="gateNameInput" placeholder="Your name" maxlength="18">
+    <p>Enter your registration number to start the puzzle and join the leaderboard.</p>
+    <input type="text" id="gateNameInput" placeholder="Registration Number" maxlength="20">
     <button class="btn" id="gateStartBtn">Start Puzzle</button>
   </div>
 </div>
@@ -64,6 +64,7 @@
     <div class="modal-icon">🕸️</div>
     <h2>Solved!</h2>
     <p>Your run has been saved to the leaderboard.</p>
+    <p id="modalNote" style="color:#f5c542; font-size:12px; margin-top:-10px;"></p>
     <div class="stats">
       <div><div class="value" id="modalTime">00:00</div><div class="label">Time</div></div>
       <div><div class="value" id="modalMoves">0</div><div class="label">Moves</div></div>

@@ -51,30 +51,39 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.url === '/score' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', async () => {
-      try{
-        const entry = JSON.parse(body);
-        if (typeof entry.name !== 'string' || typeof entry.time !== 'number' || typeof entry.moves !== 'number') {
-          res.writeHead(400); res.end('Invalid entry'); return;
-        }
-        entry.name = entry.name.slice(0, 18);
-        entry.time = Math.max(0, Math.floor(entry.time));
-        entry.moves = Math.max(0, Math.floor(entry.moves));
-
-        const list = await readScores();
-        list.push(entry);
-        await writeScores(list);
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true }));
-      }catch(err){
-        res.writeHead(400); res.end('Bad request');
+  let body = '';
+  req.on('data', chunk => body += chunk);
+  req.on('end', async () => {
+    try{
+      const entry = JSON.parse(body);
+      if (typeof entry.name !== 'string' || typeof entry.time !== 'number' || typeof entry.moves !== 'number') {
+        res.writeHead(400); res.end('Invalid entry'); return;
       }
-    });
-    return;
-  }
+      entry.name = entry.name.slice(0, 20);
+      entry.time = Math.max(0, Math.floor(entry.time));
+      entry.moves = Math.max(0, Math.floor(entry.moves));
+
+      const list = await readScores();
+      const alreadyPlayed = list.some(e => e.name === entry.name);
+
+      if (alreadyPlayed) {
+        // First attempt already recorded — don't save a second one
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, duplicate: true }));
+        return;
+      }
+
+      list.push(entry);
+      await writeScores(list);
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, duplicate: false }));
+    }catch(err){
+      res.writeHead(400); res.end('Bad request');
+    }
+  });
+  return;
+}
 
   // ---- static files ----
   let filePath = req.url === '/' ? '/index.html' : req.url;
