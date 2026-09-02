@@ -232,7 +232,6 @@ document.getElementById('gateNameInput').addEventListener('keydown', (e) => {
 });
 
 // ---------- buttons ----------
-document.getElementById('shuffleBtn').addEventListener('click', shuffle);
 document.getElementById('modalCloseBtn').addEventListener('click', () => {
   document.getElementById('modalBack').classList.remove('visible');
   shuffle();
